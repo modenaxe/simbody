@@ -27,8 +27,9 @@ jobs:
           mkdir build_wasm
           cd build_wasm
           
-          # We disable the visualizer, tests, and examples to ensure a minimal WASM build.
-          # We use -s ERROR_ON_UNDEFINED_SYMBOLS=0 to handle potential missing POSIX links.
+          # FIX: We remove -DBUILD_USING_OTHER_LAPACK=ON. 
+          # Instead, we set the LAPACK/BLAS variables to empty strings 
+          # to prevent the "unable to find -lON" error.
           
           emcmake cmake ../simbody \
             -DCMAKE_BUILD_TYPE=Release \
@@ -36,7 +37,8 @@ jobs:
             -DBUILD_VISUALIZER=OFF \
             -DBUILD_TESTING=OFF \
             -DBUILD_EXAMPLES=OFF \
-            -DBUILD_USING_OTHER_LAPACK=ON \
+            -DLAPACK_LIBRARIES="" \
+            -DBLAS_LIBRARIES="" \
             -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/simbody-wasm-install \
             -DCMAKE_CXX_FLAGS="-fexceptions -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0"
             

@@ -1,9 +1,15 @@
 name: build-simbody-wasm
 
-on: 
+# syntax https://help.github.com/en/articles/workflow-syntax-for-github-actions
+on:
+  pull_request:
+    branches:
+      - '*'
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches:
+      - master
+    tags:
+      - '*'
 
 jobs:
   build-wasm:

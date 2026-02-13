@@ -27,8 +27,8 @@ jobs:
           mkdir build_wasm
           cd build_wasm
           
-          # We force CMake to believe LAPACK/BLAS are "found" as empty to skip the test.
-          # We also set BUILD_USING_OTHER_LAPACK=OFF to ensure it uses internal stubs.
+          # We manually set LAPACK_FOUND/BLAS_FOUND to TRUE to bypass the link-test failure.
+          # We use -DBUILD_USING_OTHER_LAPACK=OFF to prevent searching for system libs.
           
           emcmake cmake ../simbody \
             -DCMAKE_BUILD_TYPE=Release \
@@ -39,11 +39,12 @@ jobs:
             -DBUILD_USING_OTHER_LAPACK=OFF \
             -DLAPACK_FOUND=TRUE \
             -DBLAS_FOUND=TRUE \
-            -DLAPACK_LIBRARIES="" \
-            -DBLAS_LIBRARIES="" \
+            -DLAPACK_LIBRARIES=" " \
+            -DBLAS_LIBRARIES=" " \
             -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/simbody-wasm-install \
-            -DCMAKE_CXX_FLAGS="-fexceptions -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0"
+            -DCMAKE_CXX_FLAGS="-fexceptions -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 -s ERROR_ON_UNDEFINED_SYMBOLS=1"
             
+          # Using -j$(nproc) to speed up compilation
           emmake make -j$(nproc)
           emmake make install
 

@@ -1,15 +1,9 @@
 name: build-simbody-wasm
 
-# syntax https://help.github.com/en/articles/workflow-syntax-for-github-actions
-on:
-  pull_request:
-    branches:
-      - '*'
+on: 
   push:
-    branches:
-      - master
-    tags:
-      - '*'
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build-wasm:
@@ -33,9 +27,8 @@ jobs:
           mkdir build_wasm
           cd build_wasm
           
-          # FIX: We remove -DBUILD_USING_OTHER_LAPACK=ON. 
-          # Instead, we set the LAPACK/BLAS variables to empty strings 
-          # to prevent the "unable to find -lON" error.
+          # We force CMake to believe LAPACK/BLAS are "found" as empty to skip the test.
+          # We also set BUILD_USING_OTHER_LAPACK=OFF to ensure it uses internal stubs.
           
           emcmake cmake ../simbody \
             -DCMAKE_BUILD_TYPE=Release \
@@ -43,6 +36,9 @@ jobs:
             -DBUILD_VISUALIZER=OFF \
             -DBUILD_TESTING=OFF \
             -DBUILD_EXAMPLES=OFF \
+            -DBUILD_USING_OTHER_LAPACK=OFF \
+            -DLAPACK_FOUND=TRUE \
+            -DBLAS_FOUND=TRUE \
             -DLAPACK_LIBRARIES="" \
             -DBLAS_LIBRARIES="" \
             -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/simbody-wasm-install \

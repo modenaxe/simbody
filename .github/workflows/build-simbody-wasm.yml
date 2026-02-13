@@ -1,0 +1,50 @@
+name: build-simbody-wasm
+
+on: 
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-wasm:
+    name: Simbody WASM Library Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Simbody
+        uses: actions/checkout@v4
+        with:
+          repository: simbody/simbody
+          path: 'simbody'
+
+      - name: Setup Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: '3.1.51'
+
+      - name: Build Simbody (Library Only)
+        run: |
+          mkdir build_wasm
+          cd build_wasm
+          
+          # We disable the visualizer, tests, and examples to ensure a minimal WASM build.
+          # We use -s ERROR_ON_UNDEFINED_SYMBOLS=0 to handle potential missing POSIX links.
+          
+          emcmake cmake ../simbody \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
+            -DBUILD_VISUALIZER=OFF \
+            -DBUILD_TESTING=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_USING_OTHER_LAPACK=ON \
+            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/simbody-wasm-install \
+            -DCMAKE_CXX_FLAGS="-fexceptions -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0"
+            
+          emmake make -j$(nproc)
+          emmake make install
+
+      - name: Upload Simbody Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: simbody-wasm-library
+          path: simbody-wasm-install/
